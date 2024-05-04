@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongodb"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model admin {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  email      String       @unique
+  password   String
+  level      Int          @default(100)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  vocabulary vocabulary[]
+  isActive   Boolean      @default(true)
+}
+
+model user {
+  id                  String                @id @default(auto()) @map("_id") @db.ObjectId
+  username            String
+  email               String?               @unique
+  password            String
+  fname               String?
+  lname               String?
+  phone               String?               @unique
+  plane               String
+  level               Int                   @default(0)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  user_has_vocabulary user_has_vocabulary[]
+  isActive            Boolean               @default(true)
+}
+
+model vocabulary {
+  id                  String                @id @default(auto()) @map("_id") @db.ObjectId
+  word                String                @unique
+  meaning             String
+  description         String?
+  example             String?
+  level               Int                   @default(0)
+  vote                Int                   @default(0)
+  adminId             String?               @db.ObjectId
+  admin               admin?                @relation(fields: [adminId], references: [id])
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  user_has_vocabulary user_has_vocabulary[]
+  tagId               String?               @db.ObjectId
+  tag                 tag?                  @relation(fields: [tagId], references: [id])
+}
+
+model tag {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  vocabulary  vocabulary[]
+  isActive    Boolean      @default(true)
+}
+
+model user_has_vocabulary {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  vocabularyId String     @db.ObjectId
+  vocabulary   vocabulary @relation(fields: [vocabularyId], references: [id])
+  userId       String     @db.ObjectId
+  user         user       @relation(fields: [userId], references: [id])
+  point        Int        @default(0)
+}
